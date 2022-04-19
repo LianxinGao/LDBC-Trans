@@ -3,6 +3,9 @@ package org.glx.graphdatabase.utils.nebula.ldbc
 import org.glx.graphdatabase.utils.CommonUtils
 
 import java.io.File
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 import scala.io.Source
 
 /**
@@ -46,9 +49,14 @@ object NebulaLDBCTrans {
       val set = srcDynamicDir.listFiles().filter(file => isRelationFile(file.getName)).toSet ++ srcStaticDir.listFiles().filter(file => isRelationFile(file.getName)).toSet
       set
     }
-
-    nodeFilesSet.foreach(nodeFile => new NodeFileHandler(nodeFile, headLinesMap).trans())
-    relFilesSet.foreach(relationFile => new RelationshipHandler(relationFile, headLinesMap).trans())
+    val nodesFuture = nodeFilesSet.map(f => Future{
+      new NodeFileHandler(f, headLinesMap).trans()
+    })
+    val relationFuture = relFilesSet.map(f => Future{
+      new RelationshipHandler(f, headLinesMap).trans()
+    })
+    nodesFuture.foreach(f => Await.result(f, Duration.Inf))
+    relationFuture.foreach(f => Await.result(f, Duration.Inf))
   }
 
   def isNodeFile(name: String): Boolean ={

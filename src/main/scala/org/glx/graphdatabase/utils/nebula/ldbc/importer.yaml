@@ -3,46 +3,46 @@ description: ldbc
 removeTempFiles: false
 clientSettings:
   retry: 3
-  concurrency: 100 # number of graph clients
+  concurrency: 10 # number of graph clients
   channelBufferSize: 1
-  space: ldbc1
+  space: ldbc100
   connection:
     user: root
     password: nebula
-    address: 10.0.82.143:9669
+    address: *.*.*.*:9669
   postStart:
     commands: |
-      DROP SPACE IF EXISTS ldbc1;
-      CREATE SPACE IF NOT EXISTS ldbc1(vid_type=int64);USE ldbc1;
-      CREATE TAG Comment(creationDate timestamp, locationIP string, browserUsed string, content string, length int);
-      CREATE TAG Forum(creationDate timestamp, title string);
+      DROP SPACE IF EXISTS ldbc100;
+      CREATE SPACE IF NOT EXISTS ldbc100(vid_type=int64);USE ldbc100;
+      CREATE TAG `Comment`(creationDate datetime, locationIP string, browserUsed string, content string, length int);
+      CREATE TAG Forum(creationDate datetime, title string);
       CREATE TAG Organisation(type string, name string, url string);
-      CREATE TAG Person(creationDate timestamp, firstName string, lastName string, gender string, birthday string, locationIP string, browserUsed string, speaks string, emails string);
+      CREATE TAG Person(creationDate datetime, firstName string, lastName string, gender string, birthday string, locationIP string, browserUsed string, speaks string, emails string);
       CREATE TAG Place(name string, url string, type string);
-      CREATE TAG Post(creationDate timestamp, imageFile string, locationIP string, browserUsed string, language string, content string, length int);
-      CREATE TAG Tag(name string, url string);
+      CREATE TAG Post(creationDate datetime, imageFile string, locationIP string, browserUsed string, language string, content string, length int);
+      CREATE TAG `Tag`(name string, url string);
       CREATE TAG TagClass(name string, url string);
-      CREATE EDGE HAS_CREATOR(creationDate timestamp);
-      CREATE EDGE HAS_TAG(creationDate timestamp);
-      CREATE EDGE HAS_MEMBER(creationDate timestamp);
-      CREATE EDGE HAS_MODERATOR(creationDate timestamp);
-      CREATE EDGE HAS_INTEREST(creationDate timestamp);
+      CREATE EDGE HAS_CREATOR(creationDate datetime);
+      CREATE EDGE HAS_TAG(creationDate datetime);
+      CREATE EDGE HAS_MEMBER(creationDate datetime);
+      CREATE EDGE HAS_MODERATOR(creationDate datetime);
+      CREATE EDGE HAS_INTEREST(creationDate datetime);
       CREATE EDGE HAS_TYPE();
-      CREATE EDGE IS_LOCATED_IN(creationDate timestamp);
+      CREATE EDGE IS_LOCATED_IN(creationDate datetime);
       CREATE EDGE IS_PART_OF();
       CREATE EDGE IS_SUBCLASS_OF();
-      CREATE EDGE REPLY_OF(creationDate timestamp);
-      CREATE EDGE CONTAINER_OF(creationDate timestamp);
-      CREATE EDGE KNOWS(creationDate timestamp);
-      CREATE EDGE LIKES(creationDate timestamp);
-      CREATE EDGE STUDY_AT(creationDate timestamp, classYear int);
-      CREATE EDGE WORK_AT(creationDate timestamp, workFrom int);
+      CREATE EDGE REPLY_OF(creationDate datetime);
+      CREATE EDGE CONTAINER_OF(creationDate datetime);
+      CREATE EDGE KNOWS(creationDate datetime);
+      CREATE EDGE LIKES(creationDate datetime);
+      CREATE EDGE STUDY_AT(creationDate datetime, classYear int);
+      CREATE EDGE WORK_AT(creationDate datetime, workFrom int);
     afterPeriod: 8s
 logPath: ../ldbc/err/ldbc100.log
 files:
   - path: ../ldbc/nodes/comment.csv
     failDataPath: ../ldbc/err/comment.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -54,7 +54,7 @@ files:
 
   - path: ../ldbc/nodes/forum.csv
     failDataPath: ../ldbc/err/forum.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -66,7 +66,7 @@ files:
 
   - path: ../ldbc/nodes/organisation.csv
     failDataPath: ../ldbc/err/organisation.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -78,7 +78,7 @@ files:
 
   - path: ../ldbc/nodes/person.csv
     failDataPath: ../ldbc/err/person.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -90,7 +90,7 @@ files:
 
   - path: ../ldbc/nodes/place.csv
     failDataPath: ../ldbc/err/place.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -102,7 +102,7 @@ files:
 
   - path: ../ldbc/nodes/post.csv
     failDataPath: ../ldbc/err/post.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -114,7 +114,7 @@ files:
 
   - path: ../ldbc/nodes/tag.csv
     failDataPath: ../ldbc/err/tag.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -126,7 +126,7 @@ files:
 
   - path: ../ldbc/nodes/tagclass.csv
     failDataPath: ../ldbc/err/tagclass.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -138,7 +138,7 @@ files:
 
   - path: ../ldbc/relations/comment_hasCreator_person.csv
     failDataPath: ../ldbc/err/comment_hasCreator_person.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -153,7 +153,7 @@ files:
 
   - path: ../ldbc/relations/comment_hasTag_tag.csv
     failDataPath: ../ldbc/err/comment_hasTag_tag.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -168,7 +168,7 @@ files:
 
   - path: ../ldbc/relations/comment_isLocatedIn_place.csv
     failDataPath: ../ldbc/err/comment_isLocatedIn_place.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -183,7 +183,7 @@ files:
 
   - path: ../ldbc/relations/comment_replyOf_comment.csv
     failDataPath: ../ldbc/err/comment_replyOf_comment.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -198,7 +198,7 @@ files:
 
   - path: ../ldbc/relations/comment_replyOf_post.csv
     failDataPath: ../ldbc/err/comment_replyOf_post.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -213,7 +213,7 @@ files:
 
   - path: ../ldbc/relations/forum_containerOf_post.csv
     failDataPath: ../ldbc/err/forum_containerOf_post.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -228,7 +228,7 @@ files:
 
   - path: ../ldbc/relations/forum_hasMember_person.csv
     failDataPath: ../ldbc/err/forum_hasMember_person.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -243,7 +243,7 @@ files:
 
   - path: ../ldbc/relations/forum_hasModerator_person.csv
     failDataPath: ../ldbc/err/forum_hasModerator_person.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -258,7 +258,7 @@ files:
 
   - path: ../ldbc/relations/forum_hasTag_tag.csv
     failDataPath: ../ldbc/err/forum_hasTag_tag.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -273,7 +273,7 @@ files:
 
   - path: ../ldbc/relations/organisation_isLocatedIn_place.csv
     failDataPath: ../ldbc/err/organisation_isLocatedIn_place.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -288,7 +288,7 @@ files:
 
   - path: ../ldbc/relations/person_hasInterest_tag.csv
     failDataPath: ../ldbc/err/person_hasInterest_tag.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -303,7 +303,7 @@ files:
 
   - path: ../ldbc/relations/person_isLocatedIn_place.csv
     failDataPath: ../ldbc/err/person_isLocatedIn_place.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -318,7 +318,7 @@ files:
 
   - path: ../ldbc/relations/person_knows_person.csv
     failDataPath: ../ldbc/err/person_knows_person.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -333,7 +333,7 @@ files:
 
   - path: ../ldbc/relations/person_likes_comment.csv
     failDataPath: ../ldbc/err/person_likes_comment.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -348,7 +348,7 @@ files:
 
   - path: ../ldbc/relations/person_likes_post.csv
     failDataPath: ../ldbc/err/person_likes_post.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -363,7 +363,7 @@ files:
 
   - path: ../ldbc/relations/person_studyAt_organisation.csv
     failDataPath: ../ldbc/err/person_studyAt_organisation.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -378,7 +378,7 @@ files:
 
   - path: ../ldbc/relations/person_workAt_organisation.csv
     failDataPath: ../ldbc/err/person_workAt_organisation.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -393,7 +393,7 @@ files:
 
   - path: ../ldbc/relations/place_isPartOf_place.csv
     failDataPath: ../ldbc/err/place_isPartOf_place.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -408,7 +408,7 @@ files:
 
   - path: ../ldbc/relations/post_hasCreator_person.csv
     failDataPath: ../ldbc/err/post_hasCreator_person.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -423,7 +423,7 @@ files:
 
   - path: ../ldbc/relations/post_hasTag_tag.csv
     failDataPath: ../ldbc/err/post_hasTag_tag.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -438,7 +438,7 @@ files:
 
   - path: ../ldbc/relations/post_isLocatedIn_place.csv
     failDataPath: ../ldbc/err/post_isLocatedIn_place.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -453,7 +453,7 @@ files:
 
   - path: ../ldbc/relations/tagclass_isSubclassOf_tagclass.csv
     failDataPath: ../ldbc/err/tagclass_isSubclassOf_tagclass.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
@@ -468,7 +468,7 @@ files:
 
   - path: ../ldbc/relations/tag_hasType_tagclass.csv
     failDataPath: ../ldbc/err/tag_hasType_tagclass.csv
-    batchSize: 200000
+    batchSize: 10000
     inOrder: true
     type: csv
     csv:
