@@ -1,2 +1,6 @@
 # LDBC-Trans
-LDBC-Util
+:ID = id
+:LABEL = type
+
+:Message:Post
+:Message:Comment

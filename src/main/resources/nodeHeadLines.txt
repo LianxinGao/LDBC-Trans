@@ -1,0 +1,10 @@
+Person=creationDate|id:long|firstName|lastName|gender|birthday|locationIP|browserUsed
+Person_email_EmailAddress=creationDate|PersonId|EmailAddressId
+Person_speaks_Language=creationDate|PersonId|LanguageId
+Comment=creationDate|id:long|locationIP|browserUsed|content|length:int
+Post=creationDate|id:long|imageFile|locationIP|browserUsed|language|content|length:int
+Organisation=id:long|type|name|url
+Place=id:long|name|url|type
+Forum=creationDate|id:long|title
+Tag=id:long|name|url
+TagClass=id:long|name|url
