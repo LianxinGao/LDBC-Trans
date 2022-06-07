@@ -62,7 +62,14 @@ class NodeHandler(nodesFile: Array[File], outPath: String) {
       writer.write(newHeader)
       writer.newLine()
 
+      var nodeCount: Int = 0
       while (iter.hasNext) {
+        nodeCount += 1
+        if (nodeCount % 20000 == 0) {
+          nodeCount = 0
+          MetaData.addGlobalNodes(20000)
+        }
+
         val lineArr = iter.next().split("\\|")
         val id = lineArr(idIndex)
 
@@ -75,6 +82,7 @@ class NodeHandler(nodesFile: Array[File], outPath: String) {
       }
       writer.flush()
       writer.close()
+      MetaData.addGlobalNodes(nodeCount)
     })
   }
   private def processPersonFiles(): Unit = {
@@ -129,7 +137,14 @@ class NodeHandler(nodesFile: Array[File], outPath: String) {
       writer.write(newHeader)
       writer.newLine()
 
+      var nodeCount: Int = 0
       while (iter.hasNext) {
+        nodeCount += 1
+        if (nodeCount % 20000 == 0) {
+          nodeCount = 0
+          MetaData.addGlobalNodes(20000)
+        }
+
         val lineArr = iter.next().split("\\|")
         val id = lineArr(idIndex)
         val innerLabel = lineArr(typeIndex)
@@ -142,6 +157,7 @@ class NodeHandler(nodesFile: Array[File], outPath: String) {
       }
       writer.flush()
       writer.close()
+      MetaData.addGlobalNodes(nodeCount)
     })
   }
   private def processMessageFiles(): Unit = {
@@ -167,7 +183,14 @@ class NodeHandler(nodesFile: Array[File], outPath: String) {
       writer.write(newHeader)
       writer.newLine()
 
+      var nodeCount: Int = 0
       while (iter.hasNext) {
+        nodeCount += 1
+        if (nodeCount % 20000 == 0) {
+          nodeCount = 0
+          MetaData.addGlobalNodes(20000)
+        }
+
         val lineArr = iter.next().split("\\|")
         val id = lineArr(idIndex)
 
@@ -180,6 +203,7 @@ class NodeHandler(nodesFile: Array[File], outPath: String) {
       }
       writer.flush()
       writer.close()
+      MetaData.addGlobalNodes(nodeCount)
     })
   }
 
@@ -198,7 +222,15 @@ class NodeHandler(nodesFile: Array[File], outPath: String) {
     val newHeader = s":ID|:LABEL|$header|email|speaks"
     writer.write(newHeader)
     writer.newLine()
+
+    var nodeCount: Int = 0
     while (iter.hasNext) {
+      nodeCount += 1
+      if (nodeCount % 20000 == 0) {
+        nodeCount = 0
+        MetaData.addGlobalNodes(20000)
+      }
+
       val lineArr = iter.next().split("\\|")
       val pId = lineArr(idIndex).toLong
 
@@ -214,6 +246,7 @@ class NodeHandler(nodesFile: Array[File], outPath: String) {
     }
     writer.flush()
     writer.close()
+    MetaData.addGlobalNodes(nodeCount)
   }
 
   private def getEmailOrSpeakIDMap(

@@ -41,7 +41,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>org.glx.graphdatabase.utils.nebula.ldbc.NebulaLDBCTrans</Main-Class>
+                                        <Main-Class>org.glx.graphdatabase.utils.pandadb.ldbc.PandaDBLDBCTrans</Main-Class>
                                         <X-Compile-Source-JDK>1.8</X-Compile-Source-JDK>
                                         <X-Compile-Target-JDK>1.8</X-Compile-Target-JDK>
                                     </manifestEntries>

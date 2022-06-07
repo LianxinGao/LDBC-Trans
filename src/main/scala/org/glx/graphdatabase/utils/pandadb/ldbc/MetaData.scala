@@ -22,6 +22,19 @@ object MetaData {
   var labelSerialMap: Map[String, Int] = Map[String, Int]()
   var labelSerialIndex: Int = 1
 
+  val totalNodesCount: AtomicLong = new AtomicLong(0)
+  val totalRelationshipsCount: AtomicLong = new AtomicLong(0)
+
+  def addGlobalNodes(num: Int): Unit = {
+    totalNodesCount.addAndGet(num)
+  }
+  def getGlobalNodes = totalNodesCount.get()
+
+  def addGlobalRels(num: Int): Unit = {
+    totalRelationshipsCount.addAndGet(num)
+  }
+  def getGlobalRelationships = totalRelationshipsCount.get()
+
   def getLabelSerialNum(label: String): Int = {
     this.synchronized {
       if (labelSerialMap.contains(label)) labelSerialMap(label)

@@ -1,8 +1,7 @@
 package org.glx.graphdatabase.utils.pandadb.ldbc
 
-import org.glx.graphdatabase.utils.CommonUtils
-
 import java.io.File
+import java.util.concurrent.{Executors, TimeUnit}
 import scala.io.Source
 
 /** @program: LDBC-Trans
@@ -24,11 +23,29 @@ object PandaDBLDBCTrans {
       throw new Exception("need dynamic dir and static dir")
     }
 
+    val watcher = Executors.newSingleThreadScheduledExecutor()
+    watcher.scheduleAtFixedRate(
+      new Thread(new Runnable {
+        override def run(): Unit = {
+          println(s"Transfer Nodes: ${MetaData.getGlobalNodes}")
+          println(s"Transfer Relationships: ${MetaData.getGlobalRelationships}")
+        }
+      }),
+      0,
+      30,
+      TimeUnit.SECONDS
+    )
+
     val files = getNodeAndRelFiles(srcPath)
     val np = new NodeHandler(files._1, outPath)
     np.processNodes()
     val rp = new RelationshipHandler(files._2, outPath)
     rp.processRels()
+    watcher.shutdown()
+    println()
+    println(
+      s"Transfer Total Nodes: ${MetaData.totalNodesCount}, Transfer Total Relationships: ${MetaData.totalRelationshipsCount}"
+    )
   }
 
   def getNodeAndRelFiles(dirPath: String): (Array[File], Array[File]) = {

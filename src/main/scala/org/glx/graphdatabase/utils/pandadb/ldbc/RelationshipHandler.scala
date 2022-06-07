@@ -32,6 +32,7 @@ class RelationshipHandler(relFiles: Array[File], outPath: String) {
 
   def processRels(): Unit = {
     var globalRelId: Long = 0
+    var globalCounter: Int = 0
 
     relFiles.foreach(file => {
       val writer =
@@ -56,7 +57,13 @@ class RelationshipHandler(relFiles: Array[File], outPath: String) {
       val newHeader = s"REL_ID|:TYPE|$header"
       writer.write(newHeader)
       writer.newLine()
+
       while (iter.hasNext) {
+        globalCounter += 1
+        if (globalCounter % 50000 == 0) {
+          globalCounter = 0
+          MetaData.addGlobalRels(50000)
+        }
         val lineArr = iter.next().split("\\|")
 
         val leftId = lineArr(leftIndex).toLong
@@ -75,6 +82,7 @@ class RelationshipHandler(relFiles: Array[File], outPath: String) {
       writer.flush()
       writer.close()
     })
+    MetaData.addGlobalRels(globalCounter)
   }
 
   def transferSubType2ParentType(typeName: String): String = {
