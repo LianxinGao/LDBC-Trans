@@ -7,7 +7,11 @@ import scala.io.Source
   * @createDate:2022/6/5
   * @description:
   */
-class RelationshipHandler(relFiles: Array[File], outPath: String) {
+class RelationshipHandler(
+    relFiles: Array[File],
+    outPath: String,
+    metaData: MetaData
+) {
   val path = s"$outPath/rels/"
   val relFile = new File(path)
   if (!relFile.exists()) relFile.mkdir()
@@ -41,7 +45,7 @@ class RelationshipHandler(relFiles: Array[File], outPath: String) {
           1024 * 1024 * 100
         )
 
-      val header = MetaData.relationHeaderMap(file.getName)
+      val header = metaData.relationHeaderMap(file.getName)
       val nameArr = file.getName.split("_")
       val leftLabel = nameArr.head
       val relationType = relMap(nameArr(1))
@@ -62,16 +66,16 @@ class RelationshipHandler(relFiles: Array[File], outPath: String) {
         globalCounter += 1
         if (globalCounter % 50000 == 0) {
           globalCounter = 0
-          MetaData.addGlobalRels(50000)
+          metaData.addGlobalRels(50000)
         }
         val lineArr = iter.next().split("\\|")
 
         val leftId = lineArr(leftIndex).toLong
         val rightId = lineArr(rightIndex).toLong
-        lineArr(leftIndex) = MetaData
+        lineArr(leftIndex) = metaData
           .getTransferId(leftId, transferSubType2ParentType(leftLabel))
           .toString
-        lineArr(rightIndex) = MetaData
+        lineArr(rightIndex) = metaData
           .getTransferId(rightId, transferSubType2ParentType(rightLabel))
           .toString
 
@@ -82,7 +86,7 @@ class RelationshipHandler(relFiles: Array[File], outPath: String) {
       writer.flush()
       writer.close()
     })
-    MetaData.addGlobalRels(globalCounter)
+    metaData.addGlobalRels(globalCounter)
   }
 
   def transferSubType2ParentType(typeName: String): String = {

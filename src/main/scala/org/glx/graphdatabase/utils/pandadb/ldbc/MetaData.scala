@@ -10,7 +10,7 @@ import scala.io.Source
   * @createDate:2022/6/5
   * @description:
   */
-object MetaData {
+class MetaData {
   val nodeHeaderMap: Map[String, String] = getHeaderMap("nodeHeadLines.txt")
   val relationHeaderMap: Map[String, String] = getHeaderMap(
     "relationshipHeadLines.txt"
@@ -55,9 +55,12 @@ object MetaData {
   }
 
   def getHeaderMap(txtName: String): Map[String, String] = {
-    val f =
-      s"${CommonUtils.getModuleRootPath}/src/main/resources/$txtName"
-    val headerFile = Source.fromFile(new File(f))
+//    val f =
+//      s"${CommonUtils.getModuleRootPath}/src/main/resources/$txtName"
+
+    val f = getClass.getResource(txtName)
+    println(f.getPath)
+    val headerFile = Source.fromFile(new File(f.getFile))
     val mp = headerFile
       .getLines()
       .toSeq

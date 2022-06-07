@@ -14,6 +14,7 @@ object PandaDBLDBCTrans {
   def main(args: Array[String]): Unit = {
     val srcPath = args(0)
     val outPath = args(1)
+    val metaData = new MetaData()
 
     val dir = new File(srcPath)
     val check = dir
@@ -27,8 +28,8 @@ object PandaDBLDBCTrans {
     watcher.scheduleAtFixedRate(
       new Thread(new Runnable {
         override def run(): Unit = {
-          println(s"Transfer Nodes: ${MetaData.getGlobalNodes}")
-          println(s"Transfer Relationships: ${MetaData.getGlobalRelationships}")
+          println(s"Transfer Nodes: ${metaData.getGlobalNodes}")
+          println(s"Transfer Relationships: ${metaData.getGlobalRelationships}")
         }
       }),
       0,
@@ -37,14 +38,14 @@ object PandaDBLDBCTrans {
     )
 
     val files = getNodeAndRelFiles(srcPath)
-    val np = new NodeHandler(files._1, outPath)
+    val np = new NodeHandler(files._1, outPath, metaData)
     np.processNodes()
-    val rp = new RelationshipHandler(files._2, outPath)
+    val rp = new RelationshipHandler(files._2, outPath, metaData)
     rp.processRels()
     watcher.shutdown()
     println()
     println(
-      s"Transfer Total Nodes: ${MetaData.totalNodesCount}, Transfer Total Relationships: ${MetaData.totalRelationshipsCount}"
+      s"Transfer Total Nodes: ${metaData.totalNodesCount}, Transfer Total Relationships: ${metaData.totalRelationshipsCount}"
     )
   }
 
