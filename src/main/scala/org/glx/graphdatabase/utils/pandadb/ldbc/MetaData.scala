@@ -55,12 +55,8 @@ class MetaData {
   }
 
   def getHeaderMap(txtName: String): Map[String, String] = {
-//    val f =
-//      s"${CommonUtils.getModuleRootPath}/src/main/resources/$txtName"
-
-    val f = getClass.getResource(txtName)
-    println(f.getPath)
-    val headerFile = Source.fromFile(new File(f.getFile))
+    val f = getClass.getResourceAsStream(s"/$txtName")
+    val headerFile = Source.fromInputStream(f)
     val mp = headerFile
       .getLines()
       .toSeq

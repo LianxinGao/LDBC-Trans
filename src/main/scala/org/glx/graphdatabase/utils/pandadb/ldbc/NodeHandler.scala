@@ -14,7 +14,7 @@ import scala.io.Source
 class NodeHandler(nodesFile: Array[File], outPath: String, metaData: MetaData) {
   val path = s"$outPath/nodes/"
   val nodeFile = new File(path)
-  if (!nodeFile.exists()) nodeFile.mkdir()
+  if (!nodeFile.exists()) nodeFile.mkdirs()
 
   val messageDir: Array[File] =
     nodesFile.filter(f =>
@@ -41,45 +41,48 @@ class NodeHandler(nodesFile: Array[File], outPath: String, metaData: MetaData) {
 
   private def processNormalFiles(): Unit = {
     normalDir.foreach(dir => {
-      val file =
+      val files =
         dir
           .listFiles()
-          .filter(f => f.getName != "_SUCCESS")
-          .head // data all in one csv
+          .filter(f => f.getName != "_SUCCESS" && !f.getName.contains("crc"))
+//          .head // data all in one csv
       val label = dir.getName
       val header = s"${metaData.nodeHeaderMap(label)}"
       val idIndex = header.split("\\|").indexOf("id:long")
-
-      val sf = Source.fromFile(file)
-      val iter = sf.getLines()
-      iter.next()
-      val newHeader = s":ID|:LABEL|$header"
 
       val writer = new BufferedWriter(
         new FileWriter(new File(s"$path/$label.csv")),
         1024 * 1024 * 100
       )
+      val newHeader = s":ID|:LABEL|$header"
       writer.write(newHeader)
       writer.newLine()
 
       var nodeCount: Int = 0
-      while (iter.hasNext) {
-        nodeCount += 1
-        if (nodeCount % 20000 == 0) {
-          nodeCount = 0
-          metaData.addGlobalNodes(20000)
+      files.foreach(file => {
+        val sf = Source.fromFile(file)
+        val iter = sf.getLines()
+        iter.next()
+
+        while (iter.hasNext) {
+          nodeCount += 1
+          if (nodeCount % 20000 == 0) {
+            nodeCount = 0
+            metaData.addGlobalNodes(20000)
+          }
+
+          val lineArr = iter.next().split("\\|")
+          val id = lineArr(idIndex)
+
+          val transId = metaData.getTransferId(id.toLong, label)
+          lineArr(idIndex) = transId.toString
+
+          val toWrite = s"$transId|$label|${lineArr.mkString("|")}"
+          writer.write(toWrite)
+          writer.newLine()
         }
+      })
 
-        val lineArr = iter.next().split("\\|")
-        val id = lineArr(idIndex)
-
-        val transId = metaData.getTransferId(id.toLong, label)
-        lineArr(idIndex) = transId.toString
-
-        val toWrite = s"$transId|$label|${lineArr.mkString("|")}"
-        writer.write(toWrite)
-        writer.newLine()
-      }
       writer.flush()
       writer.close()
       metaData.addGlobalNodes(nodeCount)
@@ -90,20 +93,19 @@ class NodeHandler(nodesFile: Array[File], outPath: String, metaData: MetaData) {
       .filter(f => f.getName.contains("email"))
       .head
       .listFiles()
-      .filter(f => f.getName != "_SUCCESS")
-      .head
+      .filter(f => f.getName != "_SUCCESS" && !f.getName.contains("crc"))
+
     val speaksFile = personDir
       .filter(f => f.getName.contains("speaks"))
       .head
       .listFiles()
-      .filter(f => f.getName != "_SUCCESS")
-      .head
+      .filter(f => f.getName != "_SUCCESS" && !f.getName.contains("crc"))
+
     val personFile = personDir
       .filter(f => f.getName == "Person")
       .head
       .listFiles()
-      .filter(f => f.getName != "_SUCCESS")
-      .head
+      .filter(f => f.getName != "_SUCCESS" && !f.getName.contains("crc"))
 
     val emailMap = getEmailOrSpeakIDMap(emailFile)
     val speaksMap = getEmailOrSpeakIDMap(speaksFile)
@@ -116,18 +118,15 @@ class NodeHandler(nodesFile: Array[File], outPath: String, metaData: MetaData) {
   }
   private def processOrgAndPlaceFiles(): Unit = {
     orgAndPlaceDir.foreach(dir => {
-      val file =
+      val files =
         dir
           .listFiles()
-          .filter(f => f.getName != "_SUCCESS")
-          .head // data all in one csv
+          .filter(f => f.getName != "_SUCCESS" && !f.getName.contains("crc"))
+//          .head // data all in one csv
       val label = dir.getName
       val header = s"${metaData.nodeHeaderMap(label)}"
       val idIndex = header.split("\\|").indexOf("id:long")
       val typeIndex = header.split("\\|").indexOf("type")
-      val sf = Source.fromFile(file)
-      val iter = sf.getLines()
-      iter.next()
       val newHeader = s":ID|:LABEL|$header"
 
       val writer = new BufferedWriter(
@@ -138,23 +137,28 @@ class NodeHandler(nodesFile: Array[File], outPath: String, metaData: MetaData) {
       writer.newLine()
 
       var nodeCount: Int = 0
-      while (iter.hasNext) {
-        nodeCount += 1
-        if (nodeCount % 20000 == 0) {
-          nodeCount = 0
-          metaData.addGlobalNodes(20000)
+      files.foreach(file => {
+        val sf = Source.fromFile(file)
+        val iter = sf.getLines()
+        iter.next()
+        while (iter.hasNext) {
+          nodeCount += 1
+          if (nodeCount % 20000 == 0) {
+            nodeCount = 0
+            metaData.addGlobalNodes(20000)
+          }
+          val lineArr = iter.next().split("\\|")
+          val id = lineArr(idIndex)
+          val innerLabel = lineArr(typeIndex)
+          val transId = metaData.getTransferId(id.toLong, label)
+          lineArr(idIndex) = transId.toString
+
+          val toWrite = s"$transId|$innerLabel|${lineArr.mkString("|")}"
+          writer.write(toWrite)
+          writer.newLine()
         }
+      })
 
-        val lineArr = iter.next().split("\\|")
-        val id = lineArr(idIndex)
-        val innerLabel = lineArr(typeIndex)
-        val transId = metaData.getTransferId(id.toLong, label)
-        lineArr(idIndex) = transId.toString
-
-        val toWrite = s"$transId|$innerLabel|${lineArr.mkString("|")}"
-        writer.write(toWrite)
-        writer.newLine()
-      }
       writer.flush()
       writer.close()
       metaData.addGlobalNodes(nodeCount)
@@ -162,28 +166,71 @@ class NodeHandler(nodesFile: Array[File], outPath: String, metaData: MetaData) {
   }
   private def processMessageFiles(): Unit = {
     messageDir.foreach(dir => {
-      val file =
+      val files =
         dir
           .listFiles()
-          .filter(f => f.getName != "_SUCCESS")
-          .head // data all in one csv
+          .filter(f => f.getName != "_SUCCESS" && !f.getName.contains("crc"))
+//          .head // data all in one csv
       val label = dir.getName
       val header = s"${metaData.nodeHeaderMap(label)}"
       val idIndex = header.split("\\|").indexOf("id:long")
-
-      val sf = Source.fromFile(file)
-      val iter = sf.getLines()
-      iter.next()
-      val newHeader = s":ID|:LABEL|$header"
 
       val writer = new BufferedWriter(
         new FileWriter(new File(s"$path/$label.csv")),
         1024 * 1024 * 100
       )
+      val newHeader = s":ID|:LABEL|$header"
       writer.write(newHeader)
       writer.newLine()
 
       var nodeCount: Int = 0
+      files.foreach(file => {
+        val sf = Source.fromFile(file)
+        val iter = sf.getLines()
+        iter.next()
+        while (iter.hasNext) {
+          nodeCount += 1
+          if (nodeCount % 20000 == 0) {
+            nodeCount = 0
+            metaData.addGlobalNodes(20000)
+          }
+
+          val lineArr = iter.next().split("\\|")
+          val id = lineArr(idIndex)
+
+          val transId = metaData.getTransferId(id.toLong, label)
+          lineArr(idIndex) = transId.toString
+
+          val toWrite = s"$transId|$label,Message|${lineArr.mkString("|")}"
+          writer.write(toWrite)
+          writer.newLine()
+        }
+      })
+      writer.flush()
+      writer.close()
+      metaData.addGlobalNodes(nodeCount)
+    })
+  }
+
+  private def processPersonFile(
+      personFile: Array[File],
+      emailIdMap: Map[Long, ArrayBuffer[String]],
+      speaksIdMap: Map[Long, ArrayBuffer[String]],
+      writer: BufferedWriter
+  ): Unit = {
+    val label = "Person"
+    val header = metaData.nodeHeaderMap(label)
+    val idIndex = header.split("\\|").indexOf("id:long")
+
+    val newHeader = s":ID|:LABEL|$header|email|speaks"
+    writer.write(newHeader)
+    writer.newLine()
+
+    var nodeCount: Int = 0
+    personFile.foreach(ff => {
+      val file = Source.fromFile(ff)
+      val iter = file.getLines()
+      iter.next()
       while (iter.hasNext) {
         nodeCount += 1
         if (nodeCount % 20000 == 0) {
@@ -192,84 +239,48 @@ class NodeHandler(nodesFile: Array[File], outPath: String, metaData: MetaData) {
         }
 
         val lineArr = iter.next().split("\\|")
-        val id = lineArr(idIndex)
+        val pId = lineArr(idIndex).toLong
 
-        val transId = metaData.getTransferId(id.toLong, label)
-        lineArr(idIndex) = transId.toString
+        val transferId = metaData.getTransferId(pId, label)
+        lineArr(idIndex) = transferId.toString
+        val email = emailIdMap.get(transferId).map(f => f.mkString(","))
+        val speaks = speaksIdMap.get(transferId).map(f => f.mkString(","))
+        val toWrite = s"$transferId|$label|${lineArr.mkString("|")}|${email
+          .getOrElse("")}|${speaks.getOrElse("")}"
 
-        val toWrite = s"$transId|$label,Message|${lineArr.mkString("|")}"
         writer.write(toWrite)
         writer.newLine()
       }
-      writer.flush()
-      writer.close()
-      metaData.addGlobalNodes(nodeCount)
     })
-  }
-
-  private def processPersonFile(
-      personFile: File,
-      emailIdMap: Map[Long, ArrayBuffer[String]],
-      speaksIdMap: Map[Long, ArrayBuffer[String]],
-      writer: BufferedWriter
-  ): Unit = {
-    val label = "Person"
-    val header = metaData.nodeHeaderMap(label)
-    val idIndex = header.split("\\|").indexOf("id:long")
-    val file = Source.fromFile(personFile)
-    val iter = file.getLines()
-    iter.next()
-    val newHeader = s":ID|:LABEL|$header|email|speaks"
-    writer.write(newHeader)
-    writer.newLine()
-
-    var nodeCount: Int = 0
-    while (iter.hasNext) {
-      nodeCount += 1
-      if (nodeCount % 20000 == 0) {
-        nodeCount = 0
-        metaData.addGlobalNodes(20000)
-      }
-
-      val lineArr = iter.next().split("\\|")
-      val pId = lineArr(idIndex).toLong
-
-      val transferId = metaData.getTransferId(pId, label)
-      lineArr(idIndex) = transferId.toString
-      val email = emailIdMap.get(transferId).map(f => f.mkString(","))
-      val speaks = speaksIdMap.get(transferId).map(f => f.mkString(","))
-      val toWrite = s"$transferId|$label|${lineArr.mkString("|")}|${email
-        .getOrElse("")}|${speaks.getOrElse("")}"
-
-      writer.write(toWrite)
-      writer.newLine()
-    }
     writer.flush()
     writer.close()
     metaData.addGlobalNodes(nodeCount)
   }
 
   private def getEmailOrSpeakIDMap(
-      emailFile: File
+      infoFiles: Array[File]
   ): Map[Long, ArrayBuffer[String]] = {
     var map: Map[Long, ArrayBuffer[String]] = Map.empty
-    val file = Source.fromFile(emailFile)
-    val iter = file.getLines()
-    iter.next()
-    while (iter.hasNext) {
-      val data = iter.next().split("\\|")
-      val id = data(1).toLong
-      val email = data(2)
 
-      val transferId = metaData.getTransferId(id, "Person")
+    infoFiles.foreach(ff => {
+      val file = Source.fromFile(ff)
+      val iter = file.getLines()
+      iter.next()
+      while (iter.hasNext) {
+        val data = iter.next().split("\\|")
+        val id = data(1).toLong
+        val email = data(2)
 
-      if (map.contains(transferId)) {
-        map(transferId).append(email)
-      } else {
-        map += transferId -> ArrayBuffer(email)
+        val transferId = metaData.getTransferId(id, "Person")
+
+        if (map.contains(transferId)) {
+          map(transferId).append(email)
+        } else {
+          map += transferId -> ArrayBuffer(email)
+        }
       }
-    }
-    file.close()
+      file.close()
+    })
     map
   }
 }

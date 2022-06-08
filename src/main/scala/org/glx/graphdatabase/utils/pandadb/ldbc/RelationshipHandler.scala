@@ -14,7 +14,7 @@ class RelationshipHandler(
 ) {
   val path = s"$outPath/rels/"
   val relFile = new File(path)
-  if (!relFile.exists()) relFile.mkdir()
+  if (!relFile.exists()) relFile.mkdirs()
 
   val relMap = Map(
     "hasMember" -> "HAS_MEMBER",
@@ -54,35 +54,39 @@ class RelationshipHandler(
       val leftIndex = header.split("\\|").indexOf(":START_ID")
       val rightIndex = header.split("\\|").indexOf(":END_ID")
 
-      val dataFile = file.listFiles().filter(p => p.getName != "_SUCCESS").head
-      val dataSource = Source.fromFile(dataFile)
-      val iter = dataSource.getLines()
-      iter.next()
       val newHeader = s"REL_ID|:TYPE|$header"
       writer.write(newHeader)
       writer.newLine()
 
-      while (iter.hasNext) {
-        globalCounter += 1
-        if (globalCounter % 50000 == 0) {
-          globalCounter = 0
-          metaData.addGlobalRels(50000)
+      val dataFiles = file
+        .listFiles()
+        .filter(p => p.getName != "_SUCCESS" && !p.getName.contains("crc"))
+      dataFiles.foreach(dataFile => {
+        val dataSource = Source.fromFile(dataFile)
+        val iter = dataSource.getLines()
+        iter.next()
+        while (iter.hasNext) {
+          globalCounter += 1
+          if (globalCounter % 50000 == 0) {
+            globalCounter = 0
+            metaData.addGlobalRels(50000)
+          }
+          val lineArr = iter.next().split("\\|")
+
+          val leftId = lineArr(leftIndex).toLong
+          val rightId = lineArr(rightIndex).toLong
+          lineArr(leftIndex) = metaData
+            .getTransferId(leftId, transferSubType2ParentType(leftLabel))
+            .toString
+          lineArr(rightIndex) = metaData
+            .getTransferId(rightId, transferSubType2ParentType(rightLabel))
+            .toString
+
+          globalRelId += 1
+          writer.write(s"$globalRelId|$relationType|${lineArr.mkString("|")}")
+          writer.newLine()
         }
-        val lineArr = iter.next().split("\\|")
-
-        val leftId = lineArr(leftIndex).toLong
-        val rightId = lineArr(rightIndex).toLong
-        lineArr(leftIndex) = metaData
-          .getTransferId(leftId, transferSubType2ParentType(leftLabel))
-          .toString
-        lineArr(rightIndex) = metaData
-          .getTransferId(rightId, transferSubType2ParentType(rightLabel))
-          .toString
-
-        globalRelId += 1
-        writer.write(s"$globalRelId|$relationType|${lineArr.mkString("|")}")
-        writer.newLine()
-      }
+      })
       writer.flush()
       writer.close()
     })
